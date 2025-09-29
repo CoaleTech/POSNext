@@ -1,0 +1,241 @@
+/* Table Selection Page - Full Width Layout */
+.table-selection-mode .table-selection-page {
+    display: block;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 40px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.table-selection-mode .point-of-sale-app {
+    display: none;
+}
+
+.table-selection-page {
+    display: none;
+}
+
+.table-selector-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Section Headers */
+.table-selector-section,
+.customer-balance-section {
+    padding: 30px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.table-selector-header,
+.customer-balance-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.section-title {
+    color: #2c3e50;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: #3498db;
+    font-size: 28px;
+}
+
+.section-subtitle {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin: 0;
+    font-weight: 400;
+}
+
+/* Table Grid */
+.table-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+    flex: 1;
+    margin-bottom: 40px;
+    overflow-y: auto;
+    max-height: 500px;
+    padding: 20px;
+}
+
+.table-card {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.table-card:hover {
+    border-color: #3498db;
+    box-shadow: 0 4px 20px rgba(52, 152, 219, 0.2);
+    transform: translateY(-2px);
+}
+
+.table-card.selected {
+    border-color: #3498db;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    box-shadow: 0 4px 20px rgba(52, 152, 219, 0.3);
+}
+
+.table-card.available {
+    border-color: #27ae60;
+}
+
+.table-card.occupied {
+    border-color: #f39c12;
+    opacity: 0.8;
+}
+
+.table-card.reserved {
+    border-color: #e74c3c;
+    opacity: 0.8;
+}
+
+.table-card.out-of-order {
+    border-color: #95a5a6;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.table-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.table-info {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.table-info .capacity {
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.table-info .status {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.table-card.available .status {
+    color: #27ae60;
+    background: rgba(39, 174, 96, 0.1);
+}
+
+.table-card.occupied .status {
+    color: #f39c12;
+    background: rgba(243, 156, 18, 0.1);
+}
+
+.table-card.reserved .status {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.table-card.out-of-order .status {
+    color: #95a5a6;
+    background: rgba(149, 165, 166, 0.1);
+}
+
+.description {
+    font-size: 11px;
+    color: #95a5a6;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+/* Table Selector Footer */
+.table-selector-footer {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.proceed-btn {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.proceed-btn:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.proceed-btn i {
+    margin-right: 8px;
+}
+
+/* Customer Balance Section */
+.customer-balance-container {
+    display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .table-selection-mode .table-selection-page {
+        padding: 20px 10px;
+    }
+
+    .table-selector-section {
+        padding: 20px;
+    }
+
+    .table-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        max-height: 400px;
+        padding: 15px;
+        gap: 15px;
+    }
+
+    .section-title {
+        font-size: 20px;
+    }
+
+    .table-card {
+        padding: 15px;
+    }
+
+    .table-number {
+        font-size: 24px;
+    }
+}

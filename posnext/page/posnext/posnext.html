@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>POSNext - Point of Sale System</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div id="posnext-app">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>POSNext - Restaurant POS System</h1>
+                    <p>Loading POSNext application...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the JavaScript file -->
+    <script>
+        // Load the POSNext JavaScript
+        frappe.ready(function() {
+            // Initialize the POSNext app
+            if (window.posnext_app) {
+                window.posnext_app.init();
+            }
+        });
+    </script>
+</body>
+</html>

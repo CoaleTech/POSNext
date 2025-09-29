@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-15 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "printer",
+  "kot_print",
+  "kot_print_format",
+  "block_takeaway_kot"
+ ],
+ "fields": [
+  {
+   "fieldname": "printer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Printer",
+   "options": "POS Profile",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "kot_print",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "KOT Print"
+  },
+  {
+   "fieldname": "kot_print_format",
+   "fieldtype": "Link",
+   "label": "KOT Print Format",
+   "options": "Print Format"
+  },
+  {
+   "default": "0",
+   "fieldname": "block_takeaway_kot",
+   "fieldtype": "Check",
+   "label": "Block Takeaway KOT"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 0,
+ "links": [],
+ "modified": "2025-01-15 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "posnext",
+ "name": "Printer Settings",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "printer",
+ "permissions": [
+     {
+         "role": "System Manager",
+         "read": 1,
+         "write": 1,
+         "create": 1,
+         "delete": 1,
+         "submit": 1,
+         "cancel": 1,
+         "amend": 1
+     }
+ ]
+}

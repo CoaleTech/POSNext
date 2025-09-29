@@ -282,4 +282,5 @@ fixtures = [
             ]
         ]
 	},
+	"Table"
 ]

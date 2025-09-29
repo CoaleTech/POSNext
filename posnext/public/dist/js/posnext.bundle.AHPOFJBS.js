@@ -1683,6 +1683,9 @@
     }
   });
 
+  // ../posnext/posnext/public/js/posnext_namespace.js
+  window.posnext.PointOfSale = window.posnext.PointOfSale || {};
+
   // ../posnext/posnext/public/js/pos_controller.js
   frappe.provide("posnext.PointOfSale");
   var selected_item = null;
@@ -1880,7 +1883,7 @@
       this.prepare_dom();
       this.prepare_components();
       this.prepare_menu();
-      this.make_new_invoice();
+      this.show_table_selector();
     }
     prepare_dom() {
       this.wrapper.append(
@@ -1889,6 +1892,7 @@
       this.$components_wrapper = this.wrapper.find(".point-of-sale-app");
     }
     prepare_components() {
+      this.init_table_selector();
       this.init_item_selector();
       this.init_item_details();
       this.init_item_cart();
@@ -1910,6 +1914,17 @@
       if (this.settings.custom_show_close_the_pos) {
         this.page.add_menu_item(__("Close the POS"), this.close_pos.bind(this), false, "Shift+Ctrl+C");
       }
+    }
+    show_table_selector() {
+      if (this.table_selector) {
+        this.table_selector.toggle_component(true);
+        this.toggle_components(false);
+        this.recent_order_list && this.recent_order_list.toggle_component(false);
+        this.order_summary && this.order_summary.toggle_component(false);
+      }
+    }
+    show_main_pos_interface() {
+      this.make_new_invoice();
     }
     open_form_view() {
       frappe.model.sync(this.frm.doc);
@@ -1957,6 +1972,22 @@
       voucher.posting_date = frappe.datetime.now_date();
       voucher.posting_time = frappe.datetime.now_time();
       frappe.set_route("Form", "POS Closing Entry", voucher.name);
+    }
+    init_table_selector() {
+      this.table_selector = new posnext.PointOfSale.TableSelector({
+        wrapper: this.$components_wrapper,
+        settings: this.settings,
+        events: {
+          table_selected: (table_name) => {
+            this.selected_table = table_name;
+            console.log("Table selected:", table_name);
+          },
+          proceed_to_items: () => {
+            this.table_selector.toggle_component(false);
+            this.show_main_pos_interface();
+          }
+        }
+      });
     }
     init_item_selector() {
       if (this.frm) {
@@ -2227,6 +2258,7 @@
           this.frm.doc.items = [];
           this.frm.doc.is_pos = 1;
           this.frm.doc.set_warehouse = this.settings.warehouse;
+          this.frm.doc.custom_restaurant_table = this.selected_table;
           resolve();
         } else {
           frappe.model.with_doctype(doctype, () => {
@@ -2234,6 +2266,7 @@
             this.frm.doc.items = [];
             this.frm.doc.is_pos = 1;
             this.frm.doc.set_warehouse = this.settings.warehouse;
+            this.frm.doc.custom_restaurant_table = this.selected_table;
             resolve();
           });
         }
@@ -2251,6 +2284,7 @@
       frappe.dom.freeze();
       this.frm = this.get_new_frm(this.frm);
       this.frm.doc.items = [];
+      this.frm.doc.custom_restaurant_table = doc.custom_restaurant_table;
       return frappe.call({
         method: "posnext.posnext.page.posnext.point_of_sale.make_sales_return",
         args: {
@@ -6797,6 +6831,161 @@ Return`,
       }
     }
   };
+
+  // ../posnext/posnext/public/js/pos_table_selector.js
+  frappe.provide("posnext.PointOfSale");
+  posnext.PointOfSale.TableSelector = class {
+    constructor({ wrapper, events, settings }) {
+      console.log("TableSelector constructor called");
+      this.wrapper = wrapper;
+      this.events = events;
+      this.settings = settings;
+      this.selected_table = null;
+      this.init_component();
+    }
+    init_component() {
+      this.prepare_dom();
+      this.load_tables_data();
+      this.bind_events();
+      $("body").addClass("table-selection-mode");
+    }
+    prepare_dom() {
+      this.$component = $(`
+			<div class="table-selection-page">
+				<div class="table-selector-container">
+					<div class="table-selector-section">
+						<div class="table-selector-header">
+							<h4 class="section-title">
+								<i class="fa fa-utensils"></i>
+								Select Table
+							</h4>
+							<p class="section-subtitle">Choose a table to start your order</p>
+						</div>
+						<div class="table-grid">
+							<!-- Tables will be loaded here -->
+						</div>
+						<div class="table-selector-footer">
+							<button class="btn btn-primary btn-lg proceed-btn">
+								<i class="fa fa-arrow-right"></i>
+								Proceed to Order
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		`).appendTo("body");
+      this.$table_grid = this.$component.find(".table-grid");
+      this.$proceed_btn = this.$component.find(".proceed-btn");
+    }
+    load_tables_data() {
+      console.log("Loading tables data...");
+      frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+          doctype: "Table",
+          fields: ["name", "table_number", "capacity", "status", "description"],
+          limit_page_length: 100
+        },
+        callback: (r) => {
+          console.log("Tables data received:", r);
+          if (r.message) {
+            this.check_active_orders(r.message);
+          } else {
+            console.log("No tables data received");
+            this.$table_grid.html('<p class="text-center">No tables available</p>');
+          }
+        },
+        error: (r) => {
+          console.error("Error loading tables:", r);
+          this.$table_grid.html('<p class="text-center text-danger">Error loading tables</p>');
+        }
+      });
+    }
+    check_active_orders(tables) {
+      frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+          doctype: "Sales Invoice",
+          fields: ["name", "custom_restaurant_table", "docstatus"],
+          filters: {
+            docstatus: 0,
+            custom_restaurant_table: ["!=", ""],
+            is_pos: 1
+          },
+          limit_page_length: 1e3
+        },
+        callback: (r) => {
+          const activeOrders = r.message || [];
+          const occupiedTables = new Set(activeOrders.map((order) => order.custom_restaurant_table));
+          tables.forEach((table) => {
+            if (occupiedTables.has(table.name)) {
+              table.status = "Occupied";
+            } else {
+              table.status = "Available";
+            }
+          });
+          this.render_tables(tables);
+        },
+        error: (r) => {
+          console.error("Error checking active orders:", r);
+          this.render_tables(tables);
+        }
+      });
+    }
+    render_tables(tables) {
+      console.log("Rendering tables:", tables);
+      this.$table_grid.empty();
+      if (tables.length === 0) {
+        this.$table_grid.html('<p class="text-center">No tables available</p>');
+        return;
+      }
+      tables.forEach((table) => {
+        const table_card = $(`
+				<div class="table-card ${table.status.toLowerCase()} ${this.selected_table === table.name ? "selected" : ""}"
+					 data-table="${table.name}">
+					<div class="table-number">${table.table_number}</div>
+					<div class="table-info">
+						<div class="capacity">Capacity: ${table.capacity}</div>
+						<div class="status">${table.status}</div>
+					</div>
+					${table.description ? `<div class="description">${table.description}</div>` : ""}
+				</div>
+			`);
+        this.$table_grid.append(table_card);
+      });
+    }
+    bind_events() {
+      const me = this;
+      this.$table_grid.on("click", ".table-card", function() {
+        const $card = $(this);
+        const table_name = $card.data("table");
+        if ($card.hasClass("occupied")) {
+          frappe.msgprint(__("This table is currently occupied. Please select an available table."));
+          return;
+        }
+        me.$table_grid.find(".table-card").removeClass("selected");
+        $card.addClass("selected");
+        me.selected_table = table_name;
+        me.events.table_selected(table_name);
+      });
+      this.$proceed_btn.on("click", () => {
+        if (this.selected_table) {
+          this.events.proceed_to_items();
+        } else {
+          frappe.msgprint(__("Please select a table first"));
+        }
+      });
+    }
+    toggle_component(show) {
+      this.$component.toggle(show);
+      if (!show) {
+        $("body").removeClass("table-selection-mode");
+      } else {
+        $("body").addClass("table-selection-mode");
+        this.load_tables_data();
+      }
+    }
+  };
 })();
 /**
  * @version 2.2.5
@@ -6806,4 +6995,4 @@ Return`,
  * Connects a web client to the QZ Tray software.
  * Enables printing and device communication from javascript.
  */
-//# sourceMappingURL=posnext.bundle.GXR7TSOP.js.map
+//# sourceMappingURL=posnext.bundle.AHPOFJBS.js.map

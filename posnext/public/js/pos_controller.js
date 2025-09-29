@@ -203,7 +203,7 @@ posnext.PointOfSale.Controller = class {
 		this.prepare_dom();
 		this.prepare_components();
 		this.prepare_menu();
-		this.make_new_invoice();
+		this.show_table_selector();
 	}
 
 	prepare_dom() {
@@ -215,6 +215,7 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	prepare_components() {
+		this.init_table_selector();
 		this.init_item_selector();
 		this.init_item_details();
 		this.init_item_cart();
@@ -237,6 +238,20 @@ posnext.PointOfSale.Controller = class {
 		if(this.settings.custom_show_close_the_pos) {
 			this.page.add_menu_item(__('Close the POS'), this.close_pos.bind(this), false, 'Shift+Ctrl+C');
 		}
+	}
+
+	show_table_selector() {
+		if (this.table_selector) {
+			this.table_selector.toggle_component(true);
+			// Hide main POS components
+			this.toggle_components(false);
+			this.recent_order_list && this.recent_order_list.toggle_component(false);
+			this.order_summary && this.order_summary.toggle_component(false);
+		}
+	}
+
+	show_main_pos_interface() {
+		this.make_new_invoice();
 	}
 
 	open_form_view() {
@@ -293,6 +308,23 @@ posnext.PointOfSale.Controller = class {
 		voucher.posting_date = frappe.datetime.now_date();
 		voucher.posting_time = frappe.datetime.now_time();
 		frappe.set_route('Form', 'POS Closing Entry', voucher.name);
+	}
+
+	init_table_selector() {
+		this.table_selector = new posnext.PointOfSale.TableSelector({
+			wrapper: this.$components_wrapper,
+			settings: this.settings,
+			events: {
+				table_selected: (table_name) => {
+					this.selected_table = table_name;
+					console.log('Table selected:', table_name);
+				},
+				proceed_to_items: () => {
+					this.table_selector.toggle_component(false);
+					this.show_main_pos_interface();
+				}
+			}
+		});
 	}
 
 	init_item_selector() {
@@ -597,6 +629,7 @@ posnext.PointOfSale.Controller = class {
 				this.frm.doc.items = [];
 				this.frm.doc.is_pos = 1
 				this.frm.doc.set_warehouse = this.settings.warehouse
+				this.frm.doc.custom_restaurant_table = this.selected_table;
 				resolve();
 			} else {
 				frappe.model.with_doctype(doctype, () => {
@@ -604,6 +637,7 @@ posnext.PointOfSale.Controller = class {
 					this.frm.doc.items = [];
 					this.frm.doc.is_pos = 1
 					this.frm.doc.set_warehouse = this.settings.warehouse
+					this.frm.doc.custom_restaurant_table = this.selected_table;
 					resolve();
 				});
 			}
@@ -624,6 +658,7 @@ posnext.PointOfSale.Controller = class {
 		frappe.dom.freeze();
 		this.frm = this.get_new_frm(this.frm);
 		this.frm.doc.items = [];
+		this.frm.doc.custom_restaurant_table = doc.custom_restaurant_table;
 		return frappe.call({
 			method: "posnext.posnext.page.posnext.point_of_sale.make_sales_return",
 			args: {
